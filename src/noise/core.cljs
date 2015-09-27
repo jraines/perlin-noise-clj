@@ -13,15 +13,15 @@
   (let [canvas (.getElementById js/document "surface")
         ctx (.getContext canvas "2d")]
     (set! (.-strokeStyle ctx) "black")
-    ;(.translate ctx 0.5 0.5)
-    (doseq [n (range 50.5 500 50)]
+    (.translate ctx 0.5 0.5)
+    (doseq [n (range 50 500 50)]
         (.beginPath ctx)
-        (.moveTo ctx 0.5 n)
-        (.lineTo ctx 500.5 n)
+        (.moveTo ctx 0 n)
+        (.lineTo ctx 500 n)
         (.stroke ctx)
         (.beginPath ctx)
-        (.moveTo ctx n 0.5)
-        (.lineTo ctx n 500.5)
+        (.moveTo ctx n 0)
+        (.lineTo ctx n 500)
         (.stroke ctx)
         ))
   )
