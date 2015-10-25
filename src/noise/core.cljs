@@ -3,33 +3,85 @@
 
 (enable-console-print!)
 
-(println "Edits to this text should show up in your developer console.")
-
-;; define your app data so that it doesn't get over-written on reload
-
-(defonce app-state (atom {:text "Hello world!"}))
-
 
 (def gradients
   "test"
-  [[14 21]
-   [14 -21]
-   [21 14]
-   [-21 14]
-   [-21 -21]
-   [21 -21]
-   [21 21]
-   [-21 21]])
+  [[0.14 0.21]
+   [0.14 -0.21]
+   [0.21 0.14]
+   [-0.21 0.14]
+   [-0.21 -0.21]
+   [0.21 -0.21]
+   [0.21 0.21]
+   [-0.21 0.21]])
 
 (defn get-gradient [[a b]]
   (let [ndx (int (mod (+ a b) 7))]
     (get gradients ndx)))
+
+(defn get-corners [x y]
+  (let [nw [(- x (mod x 100)) (- y (mod y 100))]
+        [x y] nw
+        ne [(+ 100 x) y]
+        sw [x (+ 100 y)]
+        se [(+ 100 x) (+ 100 y)]]
+    [nw ne sw se])
+  )
+
+;vector dot product
+(defn dot [X Y]
+  "take the dot product of two vectors"
+  (reduce + (map * X Y)))
+
+;linear interpolation
+(defn lerp [t a b]
+  (+ a (* t (- b a))))
+
+(defn ease [t]
+  (- (* 3 (.pow js/Math t 2))
+     (* 2 (.pow js/Math t 3))))
+
+
+(defn corner-gradients [x y]
+  (map get-gradient (get-corners x y)))
+
+(defn corner-to-point-vectors [x y]
+  (map (fn [[cx cy]] [(- x cx) (- y cy)])
+       (get-corners x y)))
+
+(defn influences [x y]
+  (let [gs (corner-gradients x y)
+        vs (corner-to-point-vectors x y)]
+    (map dot gs vs)))
+
+(defn noise [x y]
+  (let [
+        rel-x (/ x 100)
+        rel-y (/ y 100)
+
+        frac-x (mod rel-x 1)
+        frac-y (mod rel-y 1)
+
+        Sx (ease frac-x)
+        Sy (ease frac-y)
+
+        [nw ne sw se] ((fn []
+                         (influences x y)))
+
+        a (lerp Sx nw ne)
+        b (lerp Sx sw se)
+        z (lerp Sy a b)]
+    (.abs js/Math (/ z 10))))
+
+
+;;drawing related stuff
 
 (defn xPlusGrad [x y]
   (+ x (first (get-gradient [x y]))))
 
 (defn yPlusGrad [x y]
   (+ y (second  (get-gradient [x y]))))
+
 
 (defn drawGrid []
   (let [canvas (.getElementById js/document "surface")
@@ -64,14 +116,7 @@
     (set! (.-strokeStyle ctx) "green")
     (.fillRect ctx 221 139 3 3)))
 
-(defn get-corners [x y]
-  (let [nw [(- x (mod x 100)) (- y (mod y 100))]
-        [x y] nw
-        ne [(+ 100 x) y]
-        sw [x (+ 100 y)]
-        se [(+ 100 x) (+ 100 y)]]
-    [nw se sw se])
-  )
+
 
 (defn drawPointVectors []
   (let [canvas (.getElementById js/document "surface")
@@ -86,10 +131,25 @@
       (.stroke ctx)
       )))
 
+
+(defn drawNoiseCanvas []
+  (let [canvas (.getElementById js/document "noise")
+        ctx (.getContext canvas "2d")]
+    (doseq [x (range 100 400)
+            y (range 100 400)
+            :let [n  (int (* 256 (noise x y)))
+                  color (str "rgb(" n "," n "," n ")")]]
+      (set! (.-fillStyle ctx) color)
+      (.fillRect ctx x y 1 1)
+      )))
+
+
 (drawGrid)
 (drawGradients)
-(drawPoint)
 (drawPointVectors)
+(drawPoint)
+
+(drawNoiseCanvas)
 
 (defn on-js-reload []
   ;; optionally touch your app-state to force rerendering depending on
