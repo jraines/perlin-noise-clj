@@ -3,17 +3,13 @@
 
 (enable-console-print!)
 
-
 (def gradients
-  "test"
-  [[0.14 0.21]
-   [0.14 -0.21]
-   [0.21 0.14]
-   [-0.21 0.14]
-   [-0.21 -0.21]
-   [0.21 -0.21]
-   [0.21 0.21]
-   [-0.21 0.21]])
+  (vec (take 8 (repeatedly (fn []
+                             (let [x (rand)
+                                   y (rand)
+                                   mult (if (> (rand) (rand)) 1.0 -1.0)
+                                   mult2 (if (> (rand) (rand)) 1.0 -1.0)]
+                               [(* x mult) (* y mult2)]))))))
 
 (defn get-gradient [[a b]]
   (let [ndx (int (mod (+ a b) 7))]
@@ -25,8 +21,7 @@
         ne [(+ 100 x) y]
         sw [x (+ 100 y)]
         se [(+ 100 x) (+ 100 y)]]
-    [nw ne sw se])
-  )
+    [nw ne sw se]))
 
 ;vector dot product
 (defn dot [X Y]
@@ -40,7 +35,6 @@
 (defn ease [t]
   (- (* 3 (.pow js/Math t 2))
      (* 2 (.pow js/Math t 3))))
-
 
 (defn corner-gradients [x y]
   (map get-gradient (get-corners x y)))
@@ -77,11 +71,10 @@
 ;;drawing related stuff
 
 (defn xPlusGrad [x y]
-  (+ x (first (get-gradient [x y]))))
+  (+ x (* 40 (first (get-gradient [x y])))))
 
 (defn yPlusGrad [x y]
-  (+ y (second  (get-gradient [x y]))))
-
+  (+ y (* 40 (second  (get-gradient [x y])))))
 
 (defn drawGrid []
   (let [canvas (.getElementById js/document "surface")
@@ -116,8 +109,6 @@
     (set! (.-strokeStyle ctx) "green")
     (.fillRect ctx 221 139 3 3)))
 
-
-
 (defn drawPointVectors []
   (let [canvas (.getElementById js/document "surface")
         ctx (.getContext canvas "2d")
@@ -128,9 +119,7 @@
       (.beginPath ctx)
       (.moveTo ctx cx cy)
       (.lineTo ctx x y)
-      (.stroke ctx)
-      )))
-
+      (.stroke ctx))))
 
 (defn drawNoiseCanvas []
   (let [canvas (.getElementById js/document "noise")
@@ -140,8 +129,7 @@
             :let [n  (int (* 256 (noise x y)))
                   color (str "rgb(" n "," n "," n ")")]]
       (set! (.-fillStyle ctx) color)
-      (.fillRect ctx x y 1 1)
-      )))
+      (.fillRect ctx x y 1 1))))
 
 
 (drawGrid)
@@ -150,10 +138,3 @@
 (drawPoint)
 
 (drawNoiseCanvas)
-
-(defn on-js-reload []
-  ;; optionally touch your app-state to force rerendering depending on
-  ;; your application
-  ;; (swap! app-state update-in [:__figwheel_counter] inc)
-)
-
