@@ -25,7 +25,12 @@
                                [(* x mult) (* y mult2)]))))))
 
 (defn get-gradient [[a b]]
-  "find the gradient associated with a corner of a grid cell"
+  "find the gradient associated with a corner of a grid cell.
+   This stands in for the hash function in the real implementation, and the purpose
+   is to map data of arbitrary size to data of fixed size (our 8 random gradients). I think
+   this, along with the dot function, account for the slowness. The theoretical explanations
+   all involve the dot product but I don't understand how it's implemented in most real implentations,
+   including Ken Perlin's Java reference implementation."
   (let [ndx (int (mod (+ a b) 7))]
     (get gradients ndx)))
 
