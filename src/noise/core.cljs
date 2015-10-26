@@ -24,18 +24,20 @@
                                    mult2 (if (> (rand) (rand)) 1.0 -1.0)]
                                [(* x mult) (* y mult2)]))))))
 
-(defn get-gradient [[a b]]
+(defn get-gradient 
   "find the gradient associated with a corner of a grid cell.
    This stands in for the hash function in the real implementation, and the purpose
    is to map data of arbitrary size to data of fixed size (our 8 random gradients). I think
    this, along with the dot function, account for the slowness. The theoretical explanations
    all involve the dot product but I don't understand how it's implemented in most real implentations,
    including Ken Perlin's Java reference implementation."
+  [[a b]]
   (let [ndx (int (mod (+ a b) 7))]
     (get gradients ndx)))
 
-(defn get-corners [x y]
+(defn get-corners
   "for a given point, find the corners of the bounding box (grid cell) it is contained within"
+  [x y]
   (let [nw [(- x (mod x 100)) (- y (mod y 100))]
         [x y] nw
         ne [(+ 100 x) y]
@@ -43,60 +45,67 @@
         se [(+ 100 x) (+ 100 y)]]
     [nw ne sw se]))
 
-(defn dot [X Y]
+(defn dot
   "vector dot product"
+  [X Y]
   (reduce + (map * X Y)))
 
-(defn lerp [t a b]
+(defn lerp
   "linear interpolation function"
+  [t a b]
   (+ a (* t (- b a))))
 
-(defn ease [t]
+(defn ease
   "ease function. This particular one is chosen because it is diff"
+  [t]
   (- (* 3 (.pow js/Math t 2))
      (* 2 (.pow js/Math t 3))))
 
-(defn corner-gradients [x y]
+(defn corner-gradients
   "find the gradients of each corner of the bounding box"
+  [x y]
   (map get-gradient (get-corners x y)))
 
-(defn corner-to-point-vectors [x y]
+(defn corner-to-point-vectors
   "find the vectors from the point to the bounding box corners"
+  [x y]
   (map (fn [[cx cy]] [(- x cx) (- y cy)])
        (get-corners x y)))
 
-(defn influences [x y]
+(defn influences
   "compute the 'influences' of the corner gradients, by taking the dot product
    of the corner gradient and the vector from the point to that corner"
+  [x y]
   (let [gs (corner-gradients x y)
         vs (corner-to-point-vectors x y)]
     (map dot gs vs)))
 
-(defn noise [x y]
+(defn noise
   "compute the noise function value for a given pixel"
+  [x y]
   (let [
-        ;situate the point within a unit square
+        ;;situate the point within a unit square
         rel-x (/ x 100)
         rel-y (/ y 100)
 
-        ;find the coordinates within the unit square
+        ;;find the coordinates within the unit square
         frac-x (mod rel-x 1)
         frac-y (mod rel-y 1)
 
-        ;exaggerate proximity to corner
+        ;;exaggerate proximity to corner
         Sx (ease frac-x)
         Sy (ease frac-y)
 
-        ;compute influences of corner gradients
+        ;;compute influences of corner gradients
         [nw ne sw se] ((fn []
                          (influences x y)))
 
-        ;linearly interpolate between the exaggerated point the "influenced" point
+        ;;linearly interpolate between the exaggerated point the "influenced" point
         a (lerp Sx nw ne)
         b (lerp Sx sw se)
         z (lerp Sy a b)]
 
-    ;I forgot why this was needed :(
+    ;;I forgot why this was needed :(
     (.abs js/Math (/ z 10))))
 
 
@@ -109,30 +118,33 @@
 (defn yPlusGrad [x y]
   (+ y (* 40 (second  (get-gradient [x y])))))
 
-(defn stroke [ctx {:keys [startx starty endx endy]}]
+(defn stroke
   "helper function to draw a stroke on the canvas"
+  [ctx {:keys [startx starty endx endy]}]
   (.beginPath ctx)
   (.moveTo ctx startx starty)
   (.lineTo ctx endx endy)
   (.stroke ctx))
 
-(defn drawGrid []
+(defn drawGrid
   "draw the grid which shows the corner vectors and vectors to corners for an example point"
+  []
   (let [canvas (.getElementById js/document "surface")
         ctx (.getContext canvas "2d")]
     (set! (.-strokeStyle ctx) "blue")
-    ;crisper lines on the canvas
+    ;;crisper lines on the canvas
     (.translate ctx 0.5 0.5)
     (doseq [n (range 100 500 100)]
       (stroke ctx
               { :startx 100 :starty n
                 :endx 400 :endy n })
       (stroke ctx
-              { :startx n :starty 100 
+              { :startx n :starty 100
                 :endx n :endy 400 }))))
 
-(defn drawGradients []
+(defn drawGradients
   "draw the corner gradients on the example grid"
+  []
   (let [canvas (.getElementById js/document "surface")
         ctx (.getContext canvas "2d")]
     (set! (.-strokeStyle ctx) "red")
@@ -142,15 +154,17 @@
                 {:startx x :starty y
                  :endx (xPlusGrad x y) :endy (yPlusGrad x y) })))))
 
-(defn drawPoint []
+(defn drawPoint
   "draw the example point on the grid"
+  []
   (let [canvas (.getElementById js/document "surface")
         ctx (.getContext canvas "2d")]
     (set! (.-strokeStyle ctx) "green")
     (.fillRect ctx 221 139 3 3)))
 
-(defn drawPointVectors []
+(defn drawPointVectors
   "draw the vectors from the point to the corners of its bounding box"
+  []
   (let [canvas (.getElementById js/document "surface")
         ctx (.getContext canvas "2d")
         x 221
@@ -161,8 +175,9 @@
               {:startx cx :starty cy
                :endx x :endy y }))))
 
-(defn drawNoiseCanvas []
+(defn drawNoiseCanvas
   "draw a canvas with the noise function computed for each pixel"
+  []
   (let [canvas (.getElementById js/document "noise")
         ctx (.getContext canvas "2d")]
     (doseq [x (range 100 400)
