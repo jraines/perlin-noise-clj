@@ -3,17 +3,17 @@
 
 (enable-console-print!)
 
-;#Perlin Noise (naive & slow implementation)
-;
-;See http://flafla2.github.io/2014/08/09/perlinnoise.html
-;
-;Perlin noise is "pseudo-random" noise, which gives it a more
-;organic look than truly random noise, because the noise function
-;will be similar for two nearby points. This is accomplished by
-;placing a grid on a coordinate plane and associating random vectors with each intersection point on the grid.
-;For each point in the plane, its value is a function of the dot product between a set of
-;vectors from the points to each corner of its bounding box, and
-;the pseudorandom gradients associated with those corners.
+;;#Perlin Noise (naive & slow implementation)
+;;
+;;See http://flafla2.github.io/2014/08/09/perlinnoise.html
+;;
+;;Perlin noise is "pseudo-random" noise, which gives it a more
+;;organic look than truly random noise, because the noise function
+;;will be similar for two nearby points. This is accomplished by
+;;placing a grid on a coordinate plane and associating random vectors with each intersection point on the grid.
+;;For each point in the plane, its value is a function of the dot product between a set of
+;;vectors from the points to each corner of its bounding box, and
+;;the pseudorandom gradients associated with those corners.
 
 (def gradients
   "generate 8 random gradients"
@@ -56,7 +56,6 @@
   (+ a (* t (- b a))))
 
 (defn ease
-  "ease function. This particular one is chosen because it is diff"
   [t]
   (- (* 3 (.pow js/Math t 2))
      (* 2 (.pow js/Math t 3))))
@@ -132,7 +131,9 @@
   (let [canvas (.getElementById js/document "surface")
         ctx (.getContext canvas "2d")]
     (set! (.-strokeStyle ctx) "blue")
-    ;;crisper lines on the canvas
+
+    ;; crisper lines on the canvas
+
     (.translate ctx 0.5 0.5)
     (doseq [n (range 100 500 100)]
       (stroke ctx
